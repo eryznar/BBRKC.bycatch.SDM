@@ -114,7 +114,7 @@ source("./Scripts/load_libs_params.R")
                y = (test %>% filter(extrap_log_rd>0))$y,
                log_count = pred_p) -> pred_p
     
-    right_join(pred_p, pred_b, by = c("predict_year", "period", "x", "y"), relationship = "many-to-many") %>%
+    right_join(pred_p, pred_b, by = c("predict_year", "period", "x", "y")) %>%
       mutate(log_count = log_count * thres_PA) %>%
       replace_na(list(log_count = 0)) -> pred_df
   
