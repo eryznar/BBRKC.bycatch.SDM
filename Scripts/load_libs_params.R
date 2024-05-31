@@ -40,8 +40,9 @@ library(viridis)
   
   survey_gdb <- "./Data/SAP_layers.gdb"
   
-  st_read(dsn=survey_gdb,layer="BristolBaySurveyStrata") %>%
-    vect() -> BB_strata
+  readOGR(dsn=survey_gdb,layer="BristolBaySurveyStrata") %>%
+    vect(crs = crs.latlon) %>%
+    project(map.crs) -> BB_strata
   
   st_read("./Data/Closure areas/BLZ.shp") %>%
     vect() -> BLZ1 

@@ -1,6 +1,14 @@
 # PURPOSE:
 # To fit boosted regression trees to model Bristol Bay red king crab bycatch occurrence and abundance
 
+# NOTE:
+# model_iter function is mean to use large training/testing datasets that are randomly split in 10 different
+# iterations to 80% training and 20% testing sets. The function then fits binomial and Poisson models to each
+# of those split iterations and returns diagnostics on model performance at each iteration. The large training/
+# testing datasets are too big to include on github, so the training/testing datasets that are included are 
+# already filtered by the best iteration. The full results of model fitting for each training/testing split and
+# sex-size/maturity category can be accessed in the "LOAD AND SAVE BEST MODELS" section
+
 # AUTHOR:
 # Emily Ryznar - NOAA/NMFS RACE Shellfish Assessment Program (emily.ryznar@noaa.gov)
 
@@ -40,19 +48,19 @@ source("./Scripts/load_libs_params.R")
       dplyr::select(!c(TAC)) %>%
       dplyr::rename("total" = imfem_total, "total_extrap" = imfem_extrap, "total_extrap_rd" = imfem_extrap_rd)
     
-    # Training/testing data 
+  # Training/testing data 
     # Legal male
     lm_train <- read.csv("./Data/lm_train.csv")
     lm_test <- read.csv("./Data/lm_test.csv") 
-      
+        
     # Immature male
     im_train <- read.csv("./Data/im_train.csv") 
     im_test <- read.csv("./Data/im_test.csv")
-    
+      
     # Mature female
     mf_train <- read.csv("./Data/mf_train.csv")
     mf_test <- read.csv("./Data/mf_test.csv")
-    
+      
     # Immature female
     imf_train <- read.csv("./Data/imf_train.csv")
     imf_test <- read.csv("./Data/imf_test.csv")
@@ -63,7 +71,8 @@ source("./Scripts/load_libs_params.R")
     # @param test: testing data (options = "lm_test", "im_test", "mf_test", "imf_test")
     # @param matsex: red king crab sex-size/maturity category (options = "legalmale", "immaturemale", "maturefemale", "immaturefemale")
     # @param iteration: random training/testing data split iteration (options = 1:10)
-    # @return Returns data frame of model performance diagnostics for binomial (bycatch occurrence) and Poisson (bycatch abundance) models
+    # @return Returns data frame of model performance diagnostics for binomial (bycatch occurrence) 
+    # and Poisson (bycatch abundance) models; also can each model for each iterative split
   
     model_iter <- function(train, test, matsex, iteration){
 
@@ -155,56 +164,43 @@ source("./Scripts/load_libs_params.R")
     }
 
 # RUN FUNCTION --------------------------------------------------------------------------------------------
-  #Specify # of iterations
-  iteration <- 1:10
-  
   # LEGAL MALES
     matsex = "legalmale"
     train = lm_train
     test = lm_test
+    iteration = lm_iter
 
     # Fit and save models for each training/testing split iteration
     iteration %>%
       map_df(~model_iter(train, test, matsex, .x)) -> iter_out
 
     # Save model diagnostic data frame
-    eval_df <- data.frame(ntreesb = iter_out$ntreesb, ntreesp = iter_out$ntreesp, AUC = iter_out$AUC,
+    lm_eval_df <- data.frame(ntreesb = iter_out$ntreesb, ntreesp = iter_out$ntreesp, AUC = iter_out$AUC,
                           RMSE = iter_out$RMSE, rho = iter_out$rho, p = iter_out$p, iter = iter_out$iter)
+    
+    #saveRDS(lm_eval_df, "./Output/Bycatch_legalmale_iterCPUE.rda")
 
   # IMMATURE MALES 
     matsex = "immaturemale"
     train = im_train
     test = im_test
+    iteration = im_iter
 
     # Fit and save models for each training/testing split iteration
       iteration %>%
         map_df(~model_iter(train, test, matsex, .x)) -> iter_out
       
     # Save model diagnostic data frame
-    lm_eval_df <- data.frame(ntreesb = iter_out$ntreesb, ntreesp = iter_out$ntreesp, AUC = iter_out$AUC,
+    im_eval_df <- data.frame(ntreesb = iter_out$ntreesb, ntreesp = iter_out$ntreesp, AUC = iter_out$AUC,
                             RMSE = iter_out$RMSE, rho = iter_out$rho, p = iter_out$p, iter = iter_out$iter)
-
-    #saveRDS(lm_eval_df, "./Output/Bycatch_legalmale_iterCPUE.rda")
     
+    #saveRDS(im_eval_df, "./Output/Bycatch_immaturemale_iterCPUE.rda")
+   
   # MATURE FEMALES
     matsex = "maturefemale"
     train = mf_train
     test = mf_test
-    
-    # Fit and save models for each training/testing split iteration
-    iteration %>%
-      map_df(~model_iter(train, test, matsex, .x)) -> iter_out
-    
-    # Save model diagnostic data frame
-    im_eval_df <- data.frame(ntreesb = iter_out$ntreesb, ntreesp = iter_out$ntreesp, AUC = iter_out$AUC,
-                          RMSE = iter_out$RMSE, rho = iter_out$rho, p = iter_out$p, iter = iter_out$iter)
-    
-    #saveRDS(im_eval_df, "./Output/Bycatch_immaturemale_iterCPUE.rda")
-    
-  # MATURE FEMALES
-    matsex = "immaturefemale"
-    train = imf_train
-    test = imf_test
+    iteration = mf_iter
     
     # Fit and save models for each training/testing split iteration
     iteration %>%
@@ -213,13 +209,14 @@ source("./Scripts/load_libs_params.R")
     # Save model diagnostic data frame
     mf_eval_df <- data.frame(ntreesb = iter_out$ntreesb, ntreesp = iter_out$ntreesp, AUC = iter_out$AUC,
                           RMSE = iter_out$RMSE, rho = iter_out$rho, p = iter_out$p, iter = iter_out$iter)
-  
-    #saveRDS(mf_eval_df, "./Output/Bycatch_maturefemale_iterCPUE.rda")
-
+    
+    #saveRDS(mf_eval_df, "./Output/Bycatch_mature_female_iterCPUE.rda")
+    
   # IMMATURE FEMALES
-    matsex = "maturefemale"
-    train = mf_train
-    test = mf_test
+    matsex = "immaturefemale"
+    train = imf_train
+    test = imf_test
+    iteration = imf_iter
     
     # Fit and save models for each training/testing split iteration
     iteration %>%
@@ -228,9 +225,10 @@ source("./Scripts/load_libs_params.R")
     # Save model diagnostic data frame
     imf_eval_df <- data.frame(ntreesb = iter_out$ntreesb, ntreesp = iter_out$ntreesp, AUC = iter_out$AUC,
                           RMSE = iter_out$RMSE, rho = iter_out$rho, p = iter_out$p, iter = iter_out$iter)
+  
+    #saveRDS(imf_eval_df, "./Output/Bycatch_immaturefemale_iterCPUE.rda")
     
-      #saveRDS(imf_eval_df, "./Output/Bycatch_immaturefemale_iterCPUE.rda")
-    
+
 # LOAD and SAVE BEST MODELS ---------------------------------------------------------------
   # LEGAL MALE
     lm_eval_df <- readRDS("./Output/Bycatch_legalmale_iterCPUE.rda")

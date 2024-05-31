@@ -42,28 +42,20 @@ source("./Scripts/load_libs_params.R")
 
   # Training/testing data 
     # Legal male
-    lm_train <- read.csv("./Data/legalmale_trainCPUE.csv") %>%
-      filter(iter == lm_iter)
-    lm_test <- read.csv("./Data/legalmale_testCPUE.csv") %>%
-      filter(iter == lm_iter)
+    lm_train <- read.csv("./Data/lm_train.csv")
+    lm_test <- read.csv("./Data/lm_test.csv") 
     
     # Immature male
-    im_train <- read.csv("./Data/immaturemale_trainCPUE.csv") %>%
-      filter(iter == im_iter)
-    im_test <- read.csv("./Data/immaturemale_testCPUE.csv") %>%
-      filter(iter == im_iter)
+    im_train <- read.csv("./Data/im_train.csv") 
+    im_test <- read.csv("./Data/im_test.csv")
     
     # Mature female
-    mf_train <- read.csv("./Data/maturefemale_trainCPUE.csv") %>%
-      filter(iter == mf_iter)
-    mf_test <- read.csv("./Data/maturefemale_testCPUE.csv") %>%
-      filter(iter == mf_iter)
+    mf_train <- read.csv("./Data/mf_train.csv")
+    mf_test <- read.csv("./Data/mf_test.csv")
     
     # Immature female
-    imf_train <- read.csv("./Data/immaturefemale_trainCPUE.csv") %>%
-      filter(iter == imf_iter)
-    imf_test <- read.csv("./Data/immaturefemale_testCPUE.csv") %>%
-      filter(iter == imf_iter)
+    imf_train <- read.csv("./Data/imf_train.csv")
+    imf_test <- read.csv("./Data/imf_test.csv")
 
   # Best models 
     # Legal male
@@ -142,7 +134,7 @@ source("./Scripts/load_libs_params.R")
     # @return Returns several summary figures/metrics/dataframes, including weighted coordinates dataframe,
     # weighted coordinates COD plot, great circle distance between predicted and observed, great circle distance between CODs,
     # variable influence plots, timeseries of observed bycatch plot, top influential variables, AUC for occurrence performance,
-    # rho and PDE for abundance performance
+    # rho and PDE for abundance performance; also saves plots in "Figures" folder
     
     sum_plots <- function(model_b, model_p, pred_df, train, test, mat_sex, raw_dat, period){
     
@@ -257,6 +249,9 @@ source("./Scripts/load_libs_params.R")
                fontface = "bold", color = "black", size = 8) +
       theme(axis.title = element_text(size = 20), axis.text.y = element_text(size = 15),
             axis.text.x=element_text(angle=40, hjust=1, size = 15))  -> bycatch_ts
+    
+    ggsave(plot = bycatch_ts, paste0("./Figures/BRT_", mat_sex, "_bycatchts.png"), 
+           height=5, width=6, units="in")
   
     # Plot 3: Mean lat/lon for predicted vs. observed distribution -----------
     pred_df %>% # You could predict with the full dataset (training/testing), but better to use testing for out-of-sample ability
@@ -365,6 +360,8 @@ source("./Scripts/load_libs_params.R")
             axis.text = element_text(size = 20), plot.title = element_text(size = 24), legend.background = element_blank(),  
             legend.key = element_rect(fill = NA), aspect.ratio = 1) -> wtd_crds_plot
     
+    ggsave(plot = wtd_crds_plot, paste0("./Figures/BRT_", mat_sex, "_wtdcrdsplot.png"), 
+           height=7, width=8, units="in")
    
     # Plot 3: Covariate importance -------------------------------------------
     # Get covariate summaries
@@ -431,8 +428,9 @@ source("./Scripts/load_libs_params.R")
                fontface = "bold", color = "black", size = 8) +
       theme(axis.title = element_text(size = 22), axis.text.y = element_text(size = 20),
             axis.text.x=element_text(size = 18)) -> var_inf_plot
-            #axis.text.x=element_text(angle=40, hjust=1, size = 13)) -> var_inf_plot
-    
+
+    ggsave(plot = var_inf_plot, paste0("./Figures/BRT_", mat_sex, "_varinfplot.png"), 
+           height=9, width=10, units="in")
     
     # Plot 4: GC distance between obs and predicted bycatch CODs -------------------
     gc.obs <- vector()
@@ -522,6 +520,9 @@ source("./Scripts/load_libs_params.R")
         ggtitle(fig_lab)+
         theme_bw() +
         theme(panel.spacing.x = unit(4, "mm"), strip.text = element_text(size = 8)) -> b_response
+      
+      ggsave(plot = b_response, paste0("./Figures/BRT_", mat_sex, "_b.response.png"), 
+             height=2, width=10, units="in")
     
       
       ggplot(top_p_df, aes(x = Value, y = Fitted)) +
@@ -529,173 +530,15 @@ source("./Scripts/load_libs_params.R")
         facet_wrap(~factor(var, levels = top_p_names, labels = p_labs$lab), scales = "free_x", ncol = 4, nrow = 1)+
         theme_bw() +
         theme(panel.spacing.x = unit(4, "mm"), strip.text = element_text(size = 8)) -> p_response
+      
+      ggsave(plot = p_response, paste0("./Figures/BRT_", mat_sex, "_p.response.png"), 
+             height=2, width=10, units="in")
    
       return(list(wtd_crds_df = wtd_crds, wtd_crds_plot = wtd_crds_plot, sp.dist = sp.dist, 
                   gc.obs.dist = gc.obs.dist,gc.COD.dist = gc.COD.dist, var_inf_plot = var_inf_plot, 
                   bycatch_ts = bycatch_ts, top = top,AUC= AUC, 
                   rho = cor_out$estimate, PDE = PDE))   
     }
-
-  # Generate dot plot of sampling distribution
-    # @param resp_data: catch data (options = "catch_lm", "catch_im", "catch_mf", "catch_imf")
-    # @param predict_yr: years over which to map sampling distribution
-    # @return Returns sampling distribution plot and summary table
-    
-    MakeDotPlot <- function(resp_data, predict_yr){
-    
-    presence_df <- data.frame()
-    absence_df <- data.frame()
-    highdensity_df <- data.frame()
-    
-    
-    for (ii in 1:length(predict_yr)){
-      # Filter response data by season and plotting years
-      resp_data %>%
-        filter(year == predict_yr[ii]) -> resp_data2
-      
-      # Specify high density quantile
-      hd <- stats::quantile(resp_data2 %>% filter(total_extrap >0) %>% dplyr::pull(total_extrap), .9)
-      
-      # Specify high density, presence, and absence dfs
-      presence = resp_data2[resp_data2[, "total_extrap"] > 0, ]
-      absence = resp_data2[resp_data2[, "total_extrap"] == 0, ]
-      highdensity = resp_data2[resp_data2[, "total_extrap"] >= hd, ]
-      
-      
-      rbind(presence_df, presence) -> presence_df
-      rbind(absence_df, absence) -> absence_df
-      rbind(highdensity_df, highdensity) -> highdensity_df
-      
-    }
-    
-    # Transform data frame crs', make into sf objects
-    presence_df %>%
-      sf::st_as_sf(coords = c("lon", "lat"), crs = in.crs) %>%
-      sf::st_transform(sf::st_crs(map.crs)) %>%
-      vect(.) %>%
-      mask(., BB_strata)%>%
-      sf::st_as_sf() -> pres_df
-    
-    absence_df %>%
-      sf::st_as_sf(coords = c("lon", "lat"), crs = in.crs) %>%
-      sf::st_transform(sf::st_crs(map.crs)) %>%
-      vect() %>%
-      mask(., BB_strata)%>%
-      sf::st_as_sf()-> abs_df
-    
-    highdensity_df %>%
-      sf::st_as_sf(coords = c("lon", "lat"), crs = in.crs) %>%
-      sf::st_transform(sf::st_crs(map.crs)) %>%
-      vect() %>%
-      mask(., BB_strata)%>%
-      sf::st_as_sf()-> hd_df
-    
-    # Set up plot boundary
-    plot.boundary.untrans <- data.frame(y = c(54.25, 59.25), 
-                                        x = c(-167.5, -158)) # plot boundary unprojected
-    
-    plot.boundary <- plot.boundary.untrans %>%
-      sf::st_as_sf(coords = c(x = "x", y = "y"), crs = sf::st_crs(4326)) %>%
-      sf::st_transform(crs = map.crs) %>%
-      sf::st_coordinates() %>%
-      as.data.frame() %>%
-      dplyr::rename(x = X, y = Y) # plot boundary projected
-    
-    # Specify dot features
-    abs.name = "absent"
-    pres.name = "present"
-    hd.name = "top 10%"
-    abs.col = "#FDE333"
-    pres.col = "#009B95"
-    hd.col = "#4B0055" 
-    abs.shape = 16
-    pres.shape = 1
-    hd.shape = 16
-    abs.size = 2
-    pres.size = 2
-    hd.size = 2
-    pres.fac <- 2
-    abs.fac <- 1
-    hd.fac <- 3
-    
-    # Now go through and set up the dot locations and add them to legend
-    if (is.data.frame(abs_df)) {
-      leg.name <- abs.name
-      leg.col <- abs.col
-      leg.shape <- abs.shape
-      leg.size <- abs.size
-      abs.fac <- 1
-    } else {
-      abs.fac <- 0
-    }
-    
-    if (is.data.frame(pres_df)) {
-      leg.name <- c(leg.name, pres.name)
-      leg.col <- c(leg.col, pres.col)
-      leg.shape <- c(leg.shape, pres.shape)
-      leg.size <- c(leg.size, pres.size)
-      pres.fac <- abs.fac + 1
-    }
-    
-    if (is.data.frame(hd_df)) {
-      
-      leg.name <- c(leg.name, hd.name)
-      leg.col <- c(leg.col, hd.col)
-      leg.shape <- c(leg.shape, hd.shape)
-      leg.size <- c(leg.size, hd.size)
-      hd.fac <- pres.fac + 1
-    }
-    
-    rbind(abs_df %>% mutate(type = "absent"),
-          pres_df %>% mutate(type = "present"),
-          hd_df %>% mutate(type = "hd")) -> PA_df
-    
-    # Map
-    ggplot2::ggplot() +
-      ggplot2::geom_sf(data = PA_df %>% filter(type == "absent"), 
-                       alpha = .15, size = abs.size, shape = abs.shape, ggplot2::aes(color = factor(abs.fac)))+
-      
-      ggplot2::geom_sf(data = PA_df %>% filter(type == "present"), 
-                       size = pres.size, ggplot2::aes(color = factor(pres.fac)), shape = pres.shape, stroke = .8)+
-      ggplot2::geom_sf(data = PA_df %>% filter(type == "hd"), size = hd.size, 
-                       shape = hd.shape, ggplot2::aes(color = factor(hd.fac)))+
-      ggplot2::geom_sf(data = st_as_sf(BB_strata),
-                       fill = NA,
-                       color = "black",
-                       linewidth = 2)+
-      ggplot2::geom_sf(data = region_layers$akland, 
-                       fill = "grey70", 
-                       color = "black")+
-      labs(title = "Bycatch Sampling Distribution")+
-      coord_sf(xlim = plot.boundary$x,
-               ylim = plot.boundary$y)+
-      ggplot2::scale_color_manual(name = NULL, values = leg.col, labels = leg.name) +
-      ggplot2::guides(color = ggplot2::guide_legend(override.aes = list(shape = leg.shape, size = leg.size)))+
-      ggplot2::theme_bw() +
-      ggplot2::theme(
-        panel.border = ggplot2::element_rect(color = "black", fill = NA),
-        panel.background = ggplot2::element_rect(fill = NA, color = "black"),
-        legend.key = ggplot2::element_rect(fill = NA, color = "grey30"),
-        legend.position = "bottom",
-        panel.grid.major = element_blank(),
-        plot.title = element_text(size = 24),
-        plot.subtitle = element_text(size = 14),
-        axis.title = ggplot2::element_blank(), axis.text = ggplot2::element_text(size = 20),
-        legend.text = ggplot2::element_text(size = 20), legend.title = ggplot2::element_text(size = 12),
-        plot.background = ggplot2::element_rect(fill = "white", color = "white")) -> sum_dotplot
-  
-    
-    # Summary table
-    right_join(
-      PA_df %>%
-        group_by(year, type) %>%
-        reframe(n = n()),
-      PA_df %>%
-        group_by(year) %>%
-        reframe(Total = n()), by = "year") -> sum_table
-    
-    return(list(sum_dotplot = sum_dotplot, sum_table = sum_table))
-  }
 
 # RUN FUNCTIONS ---------------------------------------------------------------------------------------------------------------------
   predict_yr <- c(1997:2019, 2021:2023) 
@@ -819,6 +662,9 @@ source("./Scripts/load_libs_params.R")
             legend.title = element_blank(),
             legend.text = element_text(size = 12)) -> wtd.ts
     
+    ggsave("./Figures/COD_latTS.png", height = 8, width = 10, units = "in")
+    
+    
 # CORRELATIONS BETWEEN OBSERVED-PREDICTED, OBSERVED-SURVEY, CORRECTING FOR AUTOCORRELATIONS VIA PYPER AND PETERMAN (1998) ----------------------------
     # Filter crds by mat sex
     wtd.df %>%
@@ -933,7 +779,7 @@ source("./Scripts/load_libs_params.R")
         reframe(N_pres = sum(PA == 1),
                 N_abs = sum(PA == 0)) -> sum_table
 
-# SAMPLING DISTRIBUTION ----------------------------------------------------------
+# SAMPLING DISTRIBUTION ACROSS ALL SEX-SIZE/MATURITY CATEGORIES ----------------------------------------------------------
  # Create empty dataframes to store presences, absences, and high density points
   presence_df <- data.frame()
   absence_df <- data.frame()
@@ -1060,10 +906,6 @@ source("./Scripts/load_libs_params.R")
                      size = pres.size, ggplot2::aes(color = factor(pres.fac)), shape = pres.shape, stroke = .8)+
     ggplot2::geom_sf(data = PA_df %>% filter(type == "hd"), size = hd.size, 
                      shape = hd.shape, ggplot2::aes(color = factor(hd.fac)))+
-        # ggplot2::geom_sf(data = st_as_sf(area512), 
-    #                  fill = NA, 
-    #                  color = "purple",
-    #                  linewidth = 1.5)+
     ggplot2::geom_sf(data = st_as_sf(BB_strata),
                      fill = NA,
                      color = "black",
@@ -1071,15 +913,7 @@ source("./Scripts/load_libs_params.R")
     ggplot2::geom_sf(data = region_layers$akland, 
                      fill = "grey70", 
                      color = "black")+
-    # ggplot2::geom_sf(data = st_as_sf(RKCSA),
-    #                  fill = NA,
-    #                  color = "red",
-    #                  linewidth = 1.5)+
     labs(title = "Bycatch Sampling Distribution")+
-    # ggplot2::geom_sf(data = st_as_sf(RKCSA_sub),
-    #                  fill = NA,
-    #                  color = "red",
-    #                  linewidth = 1.5)+
     coord_sf(xlim = plot.boundary$x,
              ylim = plot.boundary$y)+
     ggplot2::scale_color_manual(name = NULL, values = leg.col, labels = leg.name) +
@@ -1097,6 +931,8 @@ source("./Scripts/load_libs_params.R")
       legend.text = ggplot2::element_text(size = 20), legend.title = ggplot2::element_text(size = 12),
       plot.background = ggplot2::element_rect(fill = "white", color = "white")) -> sum_dotplot
  
+  ggsave(plot = sum_dotplot, "./Figures/bycatch.dotplot.png", 
+         height = 10, width = 10, units = "in")
 
 # SAMPLING DISTRIBUTION FOR MATURE FEMALES --------------------------------------
   presence_df <- data.frame()
@@ -1219,10 +1055,6 @@ source("./Scripts/load_libs_params.R")
                      size = pres.size, ggplot2::aes(color = factor(pres.fac)), shape = pres.shape, stroke = .8)+
     ggplot2::geom_sf(data = PA_df %>% filter(type == "hd"), size = hd.size, 
                      shape = hd.shape, ggplot2::aes(color = factor(hd.fac)))+
-    # ggplot2::geom_sf(data = st_as_sf(area512), 
-    #                  fill = NA, 
-    #                  color = "purple",
-    #                  linewidth = 1.5)+
     ggplot2::geom_sf(data = st_as_sf(BB_strata),
                      fill = NA,
                      color = "black",
@@ -1230,15 +1062,7 @@ source("./Scripts/load_libs_params.R")
     ggplot2::geom_sf(data = region_layers$akland, 
                      fill = "grey70", 
                      color = "black")+
-    # ggplot2::geom_sf(data = st_as_sf(RKCSA),
-    #                  fill = NA,
-    #                  color = "red",
-    #                  linewidth = 1.5)+
     labs(title = "Bycatch Sampling Distribution")+
-    # ggplot2::geom_sf(data = st_as_sf(RKCSA_sub),
-    #                  fill = NA,
-    #                  color = "red",
-    #                  linewidth = 1.5)+
     coord_sf(xlim = plot.boundary$x,
              ylim = plot.boundary$y)+
     ggplot2::scale_color_manual(name = NULL, values = leg.col, labels = leg.name) +
@@ -1256,5 +1080,6 @@ source("./Scripts/load_libs_params.R")
       legend.text = ggplot2::element_text(size = 20), legend.title = ggplot2::element_text(size = 12),
       plot.background = ggplot2::element_rect(fill = "white", color = "white")) -> sum_dotplot
   
- 
+  ggsave(plot = sum_dotplot, "./Figures/mfembycatch.dotplot.png", 
+         height = 10, width = 10, units = "in")
   

@@ -180,7 +180,7 @@ source("./Scripts/load_libs_params.R")
  
 }
 
-### RUN FUNCTION ----------------------------------------------------------------
+# RUN FUNCTION ----------------------------------------------------------------
  predict_yr <- c(1997:2019, 2021:2023) # specify years to predict over
  
  # LEGAL MALES
@@ -191,10 +191,8 @@ source("./Scripts/load_libs_params.R")
     preds <- rast("./Data/lm_preds_df.tif")
     spatpred_df <- data.frame()
     spatpred_rast <- list()
-    train <- lm_train <- read.csv("./Data/legalmale_trainCPUE.csv") %>%
-                filter(iter == lm_iter)
-    test <- lm_test <- read.csv("./Data/legalmale_testCPUE.csv") %>%
-                filter(iter == lm_iter)
+    train <- read.csv("./Data/lm_train.csv")
+    test <- read.csv("./Data/lm_test.csv")
     
   # Run function
     c("Jan/Feb", "Apr/May", "Sep/Oct") %>%
@@ -379,10 +377,8 @@ source("./Scripts/load_libs_params.R")
     preds <- rast("./Data/im_preds_df.tif")
     spatpred_df <- data.frame()
     spatpred_rast <- list()
-    train <- im_train <- read.csv("./Data/immaturemale_trainCPUE.csv") %>%
-      filter(iter == im_iter)
-    test <- im_test <- read.csv("./Data/immaturemale_testCPUE.csv") %>%
-      filter(iter == im_iter)
+    train <- read.csv("./Data/im_train.csv")
+    test <- read.csv("./Data/im_test.csv")
   
     # Run function
     c("Jan/Feb", "Apr/May", "Sep/Oct") %>%
@@ -565,10 +561,8 @@ source("./Scripts/load_libs_params.R")
     preds <- rast("./Data/mf_preds_df.tif")
     spatpred_df <- data.frame()
     spatpred_rast <- list()
-    train <- mf_train <- read.csv("./Data/maturefemale_trainCPUE.csv") %>%
-      filter(iter == mf_iter)
-    test <- mf_test <- read.csv("./Data/maturefemale_testCPUE.csv") %>%
-      filter(iter == mf_iter)
+    train <- read.csv("./Data/mf_train.csv")
+    test <- read.csv("./Data/mf_test.csv")
     
   # Run function
     c("Jan/Feb", "Apr/May", "Sep/Oct") %>%
@@ -752,10 +746,8 @@ source("./Scripts/load_libs_params.R")
     preds <- rast("./Data/imf_preds_df.tif")
     spatpred_df <- data.frame()
     spatpred_rast <- list()
-    train <- imf_train <- read.csv("./Data/immaturefemale_trainCPUE.csv") %>%
-      filter(iter == imf_iter)
-    test <- imf_test <- read.csv("./Data/immaturefemale_testCPUE.csv") %>%
-      filter(iter == imf_iter)
+    train <- read.csv("./Data/imf_train.csv")
+    test <- read.csv("./Data/im_test.csv")
     
   # Run function
     c("Jan/Feb", "Apr/May", "Sep/Oct") %>%
