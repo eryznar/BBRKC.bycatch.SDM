@@ -4,11 +4,20 @@
 #AUTHOR:
 # Emily Ryznar - NOAA/NMFS RACE Shellfish Assessment Program (emily.ryznar@noaa.gov)
 
-### LOAD PROCESSING PARAMETERS --------------------------------------------------
+# LOAD PROCESSING PARAMETERS ----------------------------------------------------
 source("./Scripts/load_libs_params.R")
 
-### WRITE FUNCTION TO GENERATURE PREDICTION RASTERS -----------------------------
-predict_rast<- function(preds, model_b, model_p, train, test, period, predict_yr){
+# LOAD FUNCTION -----------------------------------------------------------------
+  # @param preds: spatial covariates over which to generate bycatch predictions (options = "lm_preds", "im_preds", "mf_preds", "imf_preds")
+  # @param model_b: best binomial model
+  # @param model_p: best poisson model
+  # @param train: training data (options = "lm_train", "im_train", "mf_train", "imf_train")
+  # @param test: testing data (options = "lm_test", "im_test", "mf_test", "imf_test")
+  # @param period: prediction period over which to generate plots (options = "Jan/Feb", "Apr/May", "Sep/Oct")
+  # @param predict_yr: years over which to generate plots (singular or multiple)
+  # @return Returns a dataframe of spatial predictions, a raster of predicted bycatch occurrence, a raster of predicted bycatch abundance, and the delta model prediction of abundance dependent on occurrence
+
+  predict_rast<- function(preds, model_b, model_p, train, test, period, predict_yr){
   
   for(ii in 1:length(predict_yr)){
 
@@ -117,41 +126,7 @@ predict_rast<- function(preds, model_b, model_p, train, test, period, predict_yr
       pull(Period) %>%
       unique
     
-    
-    # # Create rasters for yfs and rs directed fishing counts
-    # data2 %>%
-    #   dplyr::select(x, y, YFS_dfish) -> yfs_dfish
-    # 
-    # data2 %>%
-    #   dplyr::select(x, y, RS_dfish) -> rs_dfish
-    # 
-    # # Create empty raster of BB strata
-    # BB_rast <- rast(st_as_sf(BB_strata), res = 4971.196)
-    # ext(BB_rast) <- ext(preds2)
-    # BB_rast2 <- raster(BB_rast)
-    # 
-    # # Fill empty BB rast with yfs and rs directed fishing counts
-    # YFSdfish_rast <- rasterize(yfs_dfish[,c("x", "y")], raster(preds2), yfs_dfish$YFS_dfish, sum, background = 0) %>%
-    #   rast() %>%
-    #   mask(BB_strata) %>%
-    #   mask(mm)
-    # 
-    # RSdfish_rast <- rasterize(rs_dfish[,c("x", "y")], raster(preds2), rs_dfish$RS_dfish, sum, background = 0) %>%
-    #   rast() %>%
-    #   mask(BB_strata) %>%
-    #   mask(mm)
-    # 
-    # # Combine yfs and rs rasters with rest of raster stack, set name
-    # c(preds3, as.numeric(YFSdfish_rast), as.numeric(RSdfish_rast)) -> preds4 #changing TAC to factor here reducing prob of occurance but removes NAs
-    # names(preds4)[15:16] <- c("YFS_dfish", "RS_dfish")
-    # 
-    # 
-    # newdat <- cbind(crds(preds4), na.omit(as.data.frame(preds4))) %>%
-    #             mutate(RS_TAC = add$RS_TAC, YFS_TAC = add$YFS_TAC, ELV_SWP = add$ELV_SWP, Period = add$Period)
-    # 
-    # Generate spatial model predictions for Bristol Bay management area extent using raster predictors
-    #PA
-    
+    # Occurrence
     spatpred_b <- predict(preds3, # raster stack 
                           model_b, # fitted model
                           n.trees=model_b$gbm.call$best.trees, # see help
@@ -165,7 +140,7 @@ predict_rast<- function(preds, model_b, model_p, train, test, period, predict_yr
       na.omit()
     
     
-    #Abund
+    #Abundance
     spatpred_p <- predict(preds3, # raster stack 
                           model_p, # fitted model
                           n.trees=model_p$gbm.call$best.trees, # see help
@@ -202,13 +177,12 @@ predict_rast<- function(preds, model_b, model_p, train, test, period, predict_yr
     
   }
   return(list(spatpred_df = spatpred_df, spatpred_b_rast, spatpred_p_rast, spatpred_rast)) 
-  #spatpred_rast = spatpred_rast, spatpred_p = spatpred_p_rast, 
-  #spatpred_b = spatpred_b_rast))
+ 
 }
 
-predict_yr <- c(1997:2019, 2021:2023)
-
 ### RUN FUNCTION ----------------------------------------------------------------
+ predict_yr <- c(1997:2019, 2021:2023) # specify years to predict over
+ 
  # LEGAL MALES
    # Set parameters
     model_b <- readRDS("./Models/BRT_legalmale_modelb_BEST.CPUE.rda")

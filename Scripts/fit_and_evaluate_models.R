@@ -8,64 +8,64 @@
 source("./Scripts/load_libs_params.R")
 
 # LOAD DATA ----------------------------------------------------------------------------------------------
-# Raw data
-  # Legal males
-  catch_lm <- read.csv("./Data/rkc_gfbycatch.csv")
-  
-  TAC_wide <- catch_lm %>%
-    dplyr::select(year, Target, TAC) %>%
-    unique() %>%
-    pivot_wider(., id_cols = year, names_from = Target, values_from = TAC) %>%
-    dplyr::rename("RS_TAC" = `Rock Sole - BSAI`, "YFS_TAC" = `Yellowfin Sole - BSAI`)
-  
-  catch_lm <- right_join(catch_lm, TAC_wide) %>%
-    dplyr::select(!c(TAC)) %>%
-    dplyr::rename("total" = legal_total, "total_extrap" = legal_extrap, "total_extrap_rd" = legal_extrap_rd)
-  
-  # Immature males
-  catch_im <- read.csv("./Data/rkc_gfbycatch_immale.csv") %>%
-    right_join(., TAC_wide) %>%
-    dplyr::select(!c(TAC)) %>%
-    dplyr::rename("total" = immale_total, "total_extrap" = immale_extrap, "total_extrap_rd" = immale_extrap_rd)
-  
-  # Mature females
-  catch_mf <- read.csv("./Data/rkc_gfbycatch_mfem.csv") %>%
-    right_join(., TAC_wide) %>%
-    dplyr::select(!c(TAC)) %>%
-    dplyr::rename("total" = mfem_total, "total_extrap" = mfem_extrap, "total_extrap_rd" = mfem_extrap_rd)
-  
-  # Immature females
-  catch_imf <- read.csv("./Data/rkc_gfbycatch_imfem.csv") %>%
-    right_join(., TAC_wide) %>%
-    dplyr::select(!c(TAC)) %>%
-    dplyr::rename("total" = imfem_total, "total_extrap" = imfem_extrap, "total_extrap_rd" = imfem_extrap_rd)
-  
-  # Training/testing data 
-  # Legal male
-  lm_train <- read.csv("./Data/legalmale_trainCPUE.csv") %>%
-    filter(iter == lm_iter)
-  lm_test <- read.csv("./Data/legalmale_testCPUE.csv") %>%
-    filter(iter == lm_iter)
-  
-  # Immature male
-  im_train <- read.csv("./Data/immaturemale_trainCPUE.csv") %>%
-    filter(iter == im_iter)
-  im_test <- read.csv("./Data/immaturemale_testCPUE.csv") %>%
-    filter(iter == im_iter)
-  
-  # Mature female
-  mf_train <- read.csv("./Data/maturefemale_trainCPUE.csv") %>%
-    filter(iter == mf_iter)
-  mf_test <- read.csv("./Data/maturefemale_testCPUE.csv") %>%
-    filter(iter == mf_iter)
-  
-  # Immature female
-  imf_train <- read.csv("./Data/immaturefemale_trainCPUE.csv") %>%
-    filter(iter == imf_iter)
-  imf_test <- read.csv("./Data/immaturefemale_testCPUE.csv") %>%
-    filter(iter == imf_iter)
+  # Raw data
+    # Legal males
+    catch_lm <- read.csv("./Data/rkc_gfbycatch.csv")
+    
+    TAC_wide <- catch_lm %>%
+      dplyr::select(year, Target, TAC) %>%
+      unique() %>%
+      pivot_wider(., id_cols = year, names_from = Target, values_from = TAC) %>%
+      dplyr::rename("RS_TAC" = `Rock Sole - BSAI`, "YFS_TAC" = `Yellowfin Sole - BSAI`)
+    
+    catch_lm <- right_join(catch_lm, TAC_wide) %>%
+      dplyr::select(!c(TAC)) %>%
+      dplyr::rename("total" = legal_total, "total_extrap" = legal_extrap, "total_extrap_rd" = legal_extrap_rd)
+    
+    # Immature males
+    catch_im <- read.csv("./Data/rkc_gfbycatch_immale.csv") %>%
+      right_join(., TAC_wide) %>%
+      dplyr::select(!c(TAC)) %>%
+      dplyr::rename("total" = immale_total, "total_extrap" = immale_extrap, "total_extrap_rd" = immale_extrap_rd)
+    
+    # Mature females
+    catch_mf <- read.csv("./Data/rkc_gfbycatch_mfem.csv") %>%
+      right_join(., TAC_wide) %>%
+      dplyr::select(!c(TAC)) %>%
+      dplyr::rename("total" = mfem_total, "total_extrap" = mfem_extrap, "total_extrap_rd" = mfem_extrap_rd)
+    
+    # Immature females
+    catch_imf <- read.csv("./Data/rkc_gfbycatch_imfem.csv") %>%
+      right_join(., TAC_wide) %>%
+      dplyr::select(!c(TAC)) %>%
+      dplyr::rename("total" = imfem_total, "total_extrap" = imfem_extrap, "total_extrap_rd" = imfem_extrap_rd)
+    
+    # Training/testing data 
+    # Legal male
+    lm_train <- read.csv("./Data/legalmale_trainCPUE.csv") %>%
+      filter(iter == lm_iter)
+    lm_test <- read.csv("./Data/legalmale_testCPUE.csv") %>%
+      filter(iter == lm_iter)
+    
+    # Immature male
+    im_train <- read.csv("./Data/immaturemale_trainCPUE.csv") %>%
+      filter(iter == im_iter)
+    im_test <- read.csv("./Data/immaturemale_testCPUE.csv") %>%
+      filter(iter == im_iter)
+    
+    # Mature female
+    mf_train <- read.csv("./Data/maturefemale_trainCPUE.csv") %>%
+      filter(iter == mf_iter)
+    mf_test <- read.csv("./Data/maturefemale_testCPUE.csv") %>%
+      filter(iter == mf_iter)
+    
+    # Immature female
+    imf_train <- read.csv("./Data/immaturefemale_trainCPUE.csv") %>%
+      filter(iter == imf_iter)
+    imf_test <- read.csv("./Data/immaturefemale_testCPUE.csv") %>%
+      filter(iter == imf_iter)
 
-# SPECIFY FUNCTIONS ---------------------------------------------------------------------------------------
+# SPECIFY FUNCTION ---------------------------------------------------------------------------------------
   # Fit boosted regression tree models to random iterative splits of 80/20 train/test of catch data
     # @param train: training data (options = "lm_train", "im_train", "mf_train", "imf_train")
     # @param test: testing data (options = "lm_test", "im_test", "mf_test", "imf_test")

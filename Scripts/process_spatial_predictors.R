@@ -7,10 +7,9 @@
 ### LOAD PROCESSING PARAMETERS --------------------------------------------------
 source("./Scripts/load_libs_params.R")
 
-years <- c(1995:2019, 2021:2023)
+years <- c(1995:2019, 2021:2023) # years over which to process covariates
 
 # PROCESS AND STACK SPATIAL COVARIATES ------------------------------------------
-
   # Read in raster layers
   ice<- rast("./Data/ice.tif") #Jan-Feb and Mar-Apr
   sst<- rast("./Data/sst.tif") #Jan-Dec in two month increments
@@ -132,8 +131,14 @@ years <- c(1995:2019, 2021:2023)
     dplyr::select(!c(Target, TAC)) %>%
     filter(is.infinite(YFS_dfish) == FALSE, is.infinite(RS_dfish)==FALSE)
   
- # Write function to process target catch data into spatial rasters
-  dfish_rasts <- function(catch, predict_yr, period, preds){
+ # Write function to process yellowfin sole and rock sole catch data into spatial rasters of CPUE
+    # @param catch: catch data (options = "catch_lm", "catch_im", "catch_mf", "catch_imf)
+    # @param predict_yr: years over which to make rasters
+    # @param period: period over which to make rasters (options = "Jan/Feb", "Apr/May", "Sep/Oct")
+    # @param preds: spatial predictors to add df rasters to (options = "lm_preds", "im_preds", "mf_preds", "imf_preds")
+    # @return Returns rasters of yellowfin sole and rock sole directed fishery CPUE by year and prediction period
+  
+    dfish_rasts <- function(catch, predict_yr, period, preds){
     # Specify month #s for filtering
     if(period == "Jan/Feb"){
       mths = 1:2

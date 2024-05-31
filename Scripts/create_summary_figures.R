@@ -88,6 +88,7 @@ source("./Scripts/load_libs_params.R")
     # @param model_b: best binomial model
     # @param model_p: best poisson model
     # @param test: testing data (options = "lm_test", "im_test", "mf_test", "imf_test")
+    # @return Returns a dataframe of spatial predictions at fishing locations in the testing data
     
     pred_df_test <- function(model_b, model_p, test){
     
@@ -138,6 +139,10 @@ source("./Scripts/load_libs_params.R")
     # @param mat_sex: RKC sex-size/maturity category (options = "Legal_male", "Immature_male", "Mature female", "Immature female")
     # @param raw_dat: catch data (options = "catch_lm", "catch_im", "catch_mf", "catch_imf")
     # @param Period: prediction period over which to generate plots (options = "Jan/Feb", "Apr/May", "Sep/Oct", "All")
+    # @return Returns several summary figures/metrics/dataframes, including weighted coordinates dataframe,
+    # weighted coordinates COD plot, great circle distance between predicted and observed, great circle distance between CODs,
+    # variable influence plots, timeseries of observed bycatch plot, top influential variables, AUC for occurrence performance,
+    # rho and PDE for abundance performance
     
     sum_plots <- function(model_b, model_p, pred_df, train, test, mat_sex, raw_dat, period){
     
@@ -534,6 +539,7 @@ source("./Scripts/load_libs_params.R")
   # Generate dot plot of sampling distribution
     # @param resp_data: catch data (options = "catch_lm", "catch_im", "catch_mf", "catch_imf")
     # @param predict_yr: years over which to map sampling distribution
+    # @return Returns sampling distribution plot and summary table
     
     MakeDotPlot <- function(resp_data, predict_yr){
     
