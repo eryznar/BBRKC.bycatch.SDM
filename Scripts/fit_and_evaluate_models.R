@@ -42,29 +42,21 @@ source("./Scripts/load_libs_params.R")
     
     # Training/testing data 
     # Legal male
-    lm_train <- read.csv("./Data/legalmale_trainCPUE.csv") %>%
-      filter(iter == lm_iter)
-    lm_test <- read.csv("./Data/legalmale_testCPUE.csv") %>%
-      filter(iter == lm_iter)
-    
+    lm_train <- read.csv("./Data/lm_train.csv")
+    lm_test <- read.csv("./Data/lm_test.csv") 
+      
     # Immature male
-    im_train <- read.csv("./Data/immaturemale_trainCPUE.csv") %>%
-      filter(iter == im_iter)
-    im_test <- read.csv("./Data/immaturemale_testCPUE.csv") %>%
-      filter(iter == im_iter)
+    im_train <- read.csv("./Data/im_train.csv") 
+    im_test <- read.csv("./Data/im_test.csv")
     
     # Mature female
-    mf_train <- read.csv("./Data/maturefemale_trainCPUE.csv") %>%
-      filter(iter == mf_iter)
-    mf_test <- read.csv("./Data/maturefemale_testCPUE.csv") %>%
-      filter(iter == mf_iter)
+    mf_train <- read.csv("./Data/mf_train.csv")
+    mf_test <- read.csv("./Data/mf_test.csv")
     
     # Immature female
-    imf_train <- read.csv("./Data/immaturefemale_trainCPUE.csv") %>%
-      filter(iter == imf_iter)
-    imf_test <- read.csv("./Data/immaturefemale_testCPUE.csv") %>%
-      filter(iter == imf_iter)
-
+    imf_train <- read.csv("./Data/imf_train.csv")
+    imf_test <- read.csv("./Data/imf_test.csv")
+    
 # SPECIFY FUNCTION ---------------------------------------------------------------------------------------
   # Fit boosted regression tree models to random iterative splits of 80/20 train/test of catch data
     # @param train: training data (options = "lm_train", "im_train", "mf_train", "imf_train")
