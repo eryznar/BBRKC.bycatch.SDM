@@ -92,4 +92,9 @@ library(viridis)
   imf.thres <- thres %>%
     filter(category == "Immature female") %>%
     pull(max.kappa.thresh)
-  
+  # 
+  # lm.thres <- 0.139
+  # im.thres <- 0.121
+  # mf.thres <- 0.173
+  # imf.thres <- 0.0772
+  # 

@@ -116,6 +116,19 @@ write.csv(thresh.out, "./Output/thresh.selection.csv")
 write.csv(diagnostic.out, "./Output/model.diag.csv")
 
 
+read.csv("./Output/model.diag.csv") -> tt
+read.csv("./Output/thresh.selection.csv") -> kk
 
+tt
+head(tt)
 
+kk %>%
+  dplyr::select(test.prev, category) -> hh
 
+right_join(hh, tt, by = "category") %>%
+  dplyr::select(!X) %>%
+  mutate(prev.diff = abs(test.prev - pred.prev)) -> gg
+
+gg %>%
+  group_by(category) %>%
+  filter(prev.diff == min(prev.diff)) -> ff

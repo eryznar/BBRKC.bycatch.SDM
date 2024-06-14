@@ -82,7 +82,7 @@ source("./Scripts/load_libs_params.R")
     # @param test: testing data (options = "lm_test", "im_test", "mf_test", "imf_test")
     # @return Returns a dataframe of spatial predictions at fishing locations in the testing data
     
-    pred_df_test <- function(model_b, model_p, test){
+    pred_df_test <- function(model_b, model_p, test, thresh, mat_sex){
     
     # Calculate predictions
     pred_b <- suppressWarnings(predict.gbm(model_b, # fitted model to predict
@@ -102,7 +102,12 @@ source("./Scripts/load_libs_params.R")
                y = test$y,
                log_PA = pred_b) -> pred_b
     
-    thres <- mean(pred_b$log_PA)
+    if(mat_sex == "Immature female"){
+      thres <- mean(pred_b$log_PA)
+    }else{
+      thres <- thresh
+    }
+    
     
     pred_b %>%
       mutate(thres_PA = ifelse(log_PA > thres, 1, 0)) -> pred_b #using mean probability of predicted 
@@ -551,9 +556,10 @@ source("./Scripts/load_libs_params.R")
   mat_sex <- "Legal male"
   raw_dat <- catch_lm
   period <- "All"
+  thresh <- lm.thres
   
   # Generate prediction df from models using test data
-  pred_df_test(lm_modelb, lm_modelp, lm_test) -> pred_df
+  pred_df_test(lm_modelb, lm_modelp, lm_test, thresh, mat_sex) -> pred_df
 
   # Generate summary plots
   sum_plots(lm_modelb, lm_modelp, pred_df, lm_train, lm_test, "Legal male", catch_lm, "All") -> lm_plot_out
@@ -566,9 +572,10 @@ source("./Scripts/load_libs_params.R")
   mat_sex <- "Immature male"
   raw_dat <- catch_im
   period <- "All"
+  thresh <- im.thres
   
   # Generate prediction df from models using test data
-  pred_df_test(im_modelb, im_modelp, im_test) -> pred_df
+  pred_df_test(im_modelb, im_modelp, im_test, thresh, mat_sex) -> pred_df
   
   # Generate summary plots
   sum_plots(im_modelb, im_modelp, pred_df, im_train, im_test, "Immature male", catch_im, "All") -> im_plot_out
@@ -581,9 +588,10 @@ source("./Scripts/load_libs_params.R")
   mat_sex <- "Mature female"
   raw_dat <- catch_mf
   period <- "All"
+  thresh <- mf.thres
   
   # Generate prediction df from models using test data
-  pred_df_test(mf_modelb, mf_modelp, mf_test) -> pred_df
+  pred_df_test(mf_modelb, mf_modelp, mf_test, thresh, mat_sex) -> pred_df
     
   # Generate summary plots
   sum_plots(mf_modelb, mf_modelp, pred_df, mf_train, mf_test, "Mature female", catch_mf, "All") -> mf_plot_out
@@ -596,9 +604,10 @@ source("./Scripts/load_libs_params.R")
   mat_sex <- "Immature female"
   raw_dat <- catch_imf
   period <- "All"
+  thresh <- imf.thres
   
   # Generate prediction df from models using test data
-  pred_df_test(imf_modelb, imf_modelp, imf_test) -> pred_df
+  pred_df_test(imf_modelb, imf_modelp, imf_test, thresh, mat_sex) -> pred_df
     
   # Generate summary plots
   sum_plots(imf_modelb, imf_modelp, pred_df, imf_train, 
