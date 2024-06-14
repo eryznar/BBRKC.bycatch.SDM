@@ -73,3 +73,23 @@ library(viridis)
   im_iter <- 10 #immature male
   mf_iter <- 8 #mature female
   imf_iter <- 1 # immature female
+  
+# Thresholds
+  thres <- read.csv("./Output/thresh.selection.csv")
+  
+  lm.thres <- thres %>%
+    filter(category == "Legal male") %>%
+    pull(max.kappa.thresh)
+  
+  im.thres <- thres %>%
+    filter(category == "Immature male") %>%
+    pull(max.kappa.thresh)
+  
+  mf.thres <- thres %>%
+    filter(category == "Mature female") %>%
+    pull(max.kappa.thresh)
+  
+  imf.thres <- thres %>%
+    filter(category == "Immature female") %>%
+    pull(max.kappa.thresh)
+  
