@@ -17,7 +17,7 @@ source("./Scripts/load_libs_params.R")
   # @param predict_yr: years over which to generate plots (singular or multiple)
   # @return Returns a dataframe of spatial predictions, a raster of predicted bycatch occurrence, a raster of predicted bycatch abundance, and the delta model prediction of abundance dependent on occurrence
 
-  predict_rast<- function(preds, model_b, model_p, train, test, period, predict_yr){
+  predict_rast<- function(preds, model_b, model_p, train, test, period, predict_yr, thresh, mat_sex){
   
   for(ii in 1:length(predict_yr)){
 
@@ -153,7 +153,13 @@ source("./Scripts/load_libs_params.R")
       mask(mm)%>%
       na.omit()
     
-    thres <- mean(as.data.frame(spatpred_b)$lyr1)
+    if(mat_sex == "Immature female"){
+      thres <- mean(as.data.frame(spatpred_b)$lyr1) # using max kappa threshold causes imfems to be predicted in areas they will never occur. mean thresh is more stringent
+    } else{
+      thres <- thresh
+    }
+    
+   
     
     spatpred_b_df <- cbind(crds(spatpred_b$lyr1), as.data.frame(spatpred_b$lyr1)) %>%
       dplyr::rename("log_count" = lyr1) %>%
@@ -193,10 +199,12 @@ source("./Scripts/load_libs_params.R")
     spatpred_rast <- list()
     train <- read.csv("./Data/lm_train.csv")
     test <- read.csv("./Data/lm_test.csv")
+    thresh <- lm.thres
+    mat_sex <- "Legal male"
     
   # Run function
     c("Jan/Feb", "Apr/May", "Sep/Oct") %>%
-    purrr::map(~predict_rast(preds, model_b, model_p, train, test, .x, predict_yr)) -> out
+    purrr::map(~predict_rast(preds, model_b, model_p, train, test, .x, predict_yr, thresh, mat_sex)) -> out
 
    
   # By phase 
@@ -379,10 +387,12 @@ source("./Scripts/load_libs_params.R")
     spatpred_rast <- list()
     train <- read.csv("./Data/im_train.csv")
     test <- read.csv("./Data/im_test.csv")
+    thresh <- im.thres
+    mat_sex <- "Immature male"
   
     # Run function
     c("Jan/Feb", "Apr/May", "Sep/Oct") %>%
-      purrr::map(~predict_rast(preds, model_b, model_p, train, test, .x, predict_yr)) -> out
+      purrr::map(~predict_rast(preds, model_b, model_p, train, test, .x, predict_yr, thresh, mat_sex)) -> out
     
     # By phase 
     rbind(out[[1]]$spatpred_df, out[[2]]$spatpred_df, out[[3]]$spatpred_df) %>%
@@ -563,10 +573,12 @@ source("./Scripts/load_libs_params.R")
     spatpred_rast <- list()
     train <- read.csv("./Data/mf_train.csv")
     test <- read.csv("./Data/mf_test.csv")
+    thresh = mf.thres
+    mat_sex <- "Mature female"
     
   # Run function
     c("Jan/Feb", "Apr/May", "Sep/Oct") %>%
-      purrr::map(~predict_rast(preds, model_b, model_p, train, test, .x, predict_yr)) -> out
+      purrr::map(~predict_rast(preds, model_b, model_p, train, test, .x, predict_yr, thresh, mat_sex)) -> out
     
   # By phase 
     rbind(out[[1]]$spatpred_df, out[[2]]$spatpred_df, out[[3]]$spatpred_df) %>%
@@ -748,10 +760,12 @@ source("./Scripts/load_libs_params.R")
     spatpred_rast <- list()
     train <- read.csv("./Data/imf_train.csv")
     test <- read.csv("./Data/im_test.csv")
+    thresh <- imf.thres
+    mat_sex <- "Immature female"
     
   # Run function
     c("Jan/Feb", "Apr/May", "Sep/Oct") %>%
-      purrr::map(~predict_rast(preds, model_b, model_p, train, test, .x, predict_yr)) -> out
+      purrr::map(~predict_rast(preds, model_b, model_p, train, test, .x, predict_yr, thresh, mat_sex)) -> out
     
   # By phase 
     rbind(out[[1]]$spatpred_df, out[[2]]$spatpred_df, out[[3]]$spatpred_df) %>%
