@@ -1,5 +1,5 @@
 # BBRKC.bycatch.SDM
-This repository contains data, code, and figures to support the Fisheries Research manuscript: "Predicting the distribution of red king crab bycatch in Bering Sea flatfish trawl fisheries". 
+This repository contains data, code, and figures to support the Fisheries Research article: "Predicting the distribution of red king crab bycatch in Bering Sea flatfish trawl fisheries". Authors are E.R. Ryznar and M.A. Litzow.
 
 # Observer Data Availability
 This project uses data collected by at-sea observers aboard trawl vessels. These raw data are confidential by law, and require a non-disclosure aggreement for access. As such, these data and associated processing code are available upon request with appropriate aggreements in place. However, downstream, processed data products are publicly available on this repository. Please contact emily.ryznar@noaa.gov for access assistance. 
